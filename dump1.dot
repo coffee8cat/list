@@ -1,0 +1,16 @@
+digraph
+{
+   rankdir=LR
+    "0" -> "1" -> "2" -> "3" -> "4";
+    node0[shape=record,label="index: 0 | data: 0 | next: 2 | prev: 4"];
+    {rank = same; "0"; node0}
+    node1[shape=record,label="index: 2 | data: 200 | next: 1 | prev: 0"];
+    {rank = same; "1"; node1}
+    node2[shape=record,label="index: 1 | data: 100 | next: 3 | prev: 2"];
+    {rank = same; "2"; node2}
+    node3[shape=record,label="index: 3 | data: 300 | next: 4 | prev: 1"];
+    {rank = same; "3"; node3}
+    node4[shape=record,label="index: 4 | data: 600 | next: 0 | prev: 3"];
+    {rank = same; "node4"; node4}
+    node0 -> node1 -> node2 -> node3 -> node4;
+}
