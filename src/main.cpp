@@ -27,7 +27,6 @@ int main ()
 
     list_dump(&lst, html_stream);
     list_dtor(&lst);
-    WinExec("dot data\\dump1.dot -Tpng -o data\\dump1.png", 1);
 
     fclose(html_stream);
     return 0;

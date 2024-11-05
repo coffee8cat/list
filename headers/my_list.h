@@ -22,6 +22,8 @@ struct list_t
 list_t list_ctor();
 int list_dtor(list_t* lst);
 
+int list_verify(list_t* lst);
+
 FILE* prepare_html();
 int list_dump(list_t* lst, FILE* stream);
 int make_dot_file(list_t* lst, FILE* fp);

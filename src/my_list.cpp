@@ -16,7 +16,7 @@ list_t list_ctor()
     for (size_t i = 1; i < max_list_size - 1; i++)
     {
         lst.next[i] = (int)i + 1;
-        lst.prev[i] = (int)i - 1;
+        lst.prev[i] = -1;
     }
     lst.prev[max_list_size - 1] = max_list_size - 2;
     lst.next[max_list_size - 1] = 0;
@@ -29,6 +29,35 @@ int list_dtor(list_t* lst)
     assert(lst);
     memset(lst, 0, sizeof(*lst));
     lst = NULL;
+
+    return 0;
+}
+
+int list_verify(list_t* lst)
+{
+    assert(lst);
+
+    int i = 0;
+    while (i != PREV(0))
+    {
+        if (PREV(NEXT(i)) != i || NEXT(PREV(i)) != (size_t)i)
+        {
+            fprintf(stderr, "VERIFICATION FAILED ON NODE %d\n", i);
+            return i;
+        }
+        i = NEXT(i);
+    }
+
+    /*i = NEXT(lst -> free);
+    while (NEXT(i) != 0)
+    {
+        if (PREV(NEXT(i)) != i || NEXT(PREV(i)) != (size_t)i)
+        {
+            fprintf(stderr, "VERIFICATION FAILED ON NODE %d\n", i);
+            return i;
+        }
+        i = NEXT(i);
+    }*/
 
     return 0;
 }
@@ -61,11 +90,12 @@ int list_dump(list_t* lst, FILE* html_stream)
     }
 
     make_dot_file(lst, fp);
+    fclose(fp);
 
     char command[BUFSIZ] = "";
-    sprintf(command, "dot %s -Tpng -o %s", dot_file_name, png_file_name);
-    WinExec((const char*)command, 1);
-    printf("%s\n", command);
+    sprintf(command, "dot %s -Tpng -o %s\n", dot_file_name, png_file_name);
+    int x = system((const char*)command);
+    printf("x = %d\n%s\n", x, command);
 
     fprintf(html_stream, "MEMORY PRINT\n");
     fprintf(html_stream, "curr data next prev\n");
@@ -127,24 +157,17 @@ int make_dot_file(list_t* lst, FILE* fp)
     i = 0;
     while (i != PREV(0)) //last case differ
     {
-        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\"]\n", i, NEXT(i));
-        fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", NEXT(i), i);
+        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\",constraint=false]\n", i, NEXT(i));
+        fprintf(fp, "    node%d -> node%d[color=\"#F00822\",constraint=false]\n", NEXT(i), i);
         i = NEXT(i);
     }
-    fprintf(fp, "    node%d -> node0[color=\"#0855F0\"]\n\n", i);
-    fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", NEXT(i), i);
+    fprintf(fp, "    node%d -> node0[color=\"#0855F0\",constraint=false]\n\n", i);
+    fprintf(fp, "    node%d -> node%d[color=\"#F00822\",constraint=false]\n", NEXT(i), i);
 
     i = lst -> free;
     while (i != 0)
     {
-        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\"]\n", i, NEXT(i));
-        i = NEXT(i);
-    }
-
-    i = NEXT(lst -> free);
-    while (i != 0)
-    {
-        fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", i, PREV(i));
+        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\",constraint=false]\n", i, NEXT(i));
         i = NEXT(i);
     }
 
