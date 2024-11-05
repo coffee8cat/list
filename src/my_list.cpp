@@ -16,7 +16,9 @@ list_t list_ctor()
     for (size_t i = 1; i < max_list_size - 1; i++)
     {
         lst.next[i] = (int)i + 1;
+        lst.prev[i] = (int)i - 1;
     }
+    lst.prev[max_list_size - 1] = max_list_size - 2;
     lst.next[max_list_size - 1] = 0;
 
     return lst;
@@ -46,7 +48,7 @@ FILE* prepare_html()
 int list_dump(list_t* lst, FILE* html_stream)
 {
     static size_t dump_counter = 0;
-    FILE* fp = fopen("dump1.dot", "w");
+    FILE* fp = fopen("data\\dump1.dot", "w");
     if (fp == NULL)
     {
         fprintf(stderr, "ERROR: Unable to open file for dump\n");
@@ -54,10 +56,10 @@ int list_dump(list_t* lst, FILE* html_stream)
     }
 
     make_dot_file(lst, fp);
-    system("dot " "dump1" ".dot" " -Tpng -o " "dump1" ".png");
-    printf("dot " "dump1" ".dot" " -Tpng -o " "dump1" ".png" "\n");
+    system("dot data\\" "dump1" ".dot" " -Tpng -o data\\" "dump1" ".png");
+    printf("dot data\\" "dump1" ".dot" " -Tpng -o data\\" "dump1" ".png" "\n");
 
-    size_t i = 0;
+    int i = 0;
 
     fprintf(html_stream, "MEMORY PRINT\n");
     fprintf(html_stream, "curr data next prev\n");
@@ -67,15 +69,14 @@ int list_dump(list_t* lst, FILE* html_stream)
         i = NEXT(i);
     }
     fprintf(html_stream, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
-    fprintf(html_stream, "<img src=\"dump1.png\">\n");
+    fprintf(html_stream, "<img src=\"data\\dump1.png\">\n");
 
     fprintf(stdout, "MEMORY PRINT\n");
     fprintf(stdout, "curr data next prev\n");
-    for (size_t i = 0; i < max_list_size; i++)
+    for (size_t k = 0; k < max_list_size; k++)
     {
-        printf("%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
+        printf("%4d %4d %4d %4d\n", k, lst -> data[k], lst -> next[k], lst -> prev[k]);
     }
-    printf("%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
 
     i = 0;
     fprintf(stdout, "curr data next prev\n");
@@ -96,45 +97,73 @@ int make_dot_file(list_t* lst, FILE* fp)
     assert(fp);
     assert(lst);
 
-    fprintf(fp, "digraph\n{\n   rankdir=LR\n    ");
+    fprintf(fp, "digraph\n{\n"
+                "    rankdir=LR\n\n"
+                "    ");
 
-    size_t i = 0;
-    size_t j = 0;
-    while (i != lst -> prev[0])
+    for (size_t k = 0; k < max_list_size - 1; k++)
     {
-        fprintf(fp, "\"%d\" -> ", j);
-        i = NEXT(i);
-        j++;
+        fprintf(fp, "\"%d\" -> ", k);
     }
-    fprintf(fp, "\"%d\";\n", j);
+    fprintf(fp, "\"%d\";\n\n", max_list_size - 1);
+
+    int i = lst -> free;
+    while (i != 0)
+    {
+        fprintf(fp, "    node%d[shape=record,style=\"rounded,filled\",fillcolor=\"#39CCCC\","
+                    "label=\"index: %d | data: %d | next: %d | prev: %d\"];\n",
+                    i, i, lst -> data[i], NEXT(i), PREV(i));
+        i = NEXT(i);
+    }
+
+
+    fprintf(fp, "    node%d[shape=record,style=\"rounded,filled\",fillcolor=\"#BE08F0\","
+                "label=\"index: %d | data: %d | next: %d | prev: %d\"];\n",
+                0, 0, lst -> data[0], NEXT(0), PREV(0));
+    i = NEXT(0);
+    while (i != 0)
+    {
+        fprintf(fp, "    node%d[shape=record,style=\"rounded,filled\",fillcolor=\"#2ECC40\","
+                    "label=\"index: %d | data: %d | next: %d | prev: %d\"];\n",
+                    i, i, lst -> data[i], NEXT(i), PREV(i));
+        i = NEXT(i);
+    }
+
+    fprintf(fp, "\n    ");
+    for (size_t k = 0; k < max_list_size - 1; k++)
+    {
+        fprintf(fp, "    node%d -> node%d[color=\"none\",penwidth=100000000]\n"
+                    "    {rank = same; \"%d\"; node%d}\n", k, k + 1, k, k);
+    }
+    fprintf(fp, "    {rank = same; \"%d\"; node%d}\n\n", max_list_size - 1, max_list_size - 1);
 
     i = 0;
-    j = 0;
-    while (i != lst -> prev[0])
+    while (i != PREV(0)) //last case differ
     {
-        fprintf(fp, "    node%d[shape=record,label=\"index: %d | data: %d | next: %d | prev: %d\"];\n"
-                    "    {rank = same; \"%d\"; node%d}\n",
-                    j, i, lst -> data[i], lst -> next[i], lst -> prev[i], j, j);
+        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\"]\n", i, NEXT(i));
+        fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", NEXT(i), i);
         i = NEXT(i);
-        j++;
     }
-    fprintf(fp, "    node%d[shape=record,label=\"index: %d | data: %d | next: %d | prev: %d\"];\n"
-                "    {rank = same; \"node%d\"; node%d}\n",
-                j, i, lst -> data[i], lst -> next[i], lst -> prev[i], j, j);
+    fprintf(fp, "    node%d -> node0[color=\"#0855F0\"]\n\n", i);
+    fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", NEXT(i), i);
 
-    i = 0;
-    j = 0;
-    fprintf(fp, "    ");
-    while (i != lst -> prev[0])
+    i = lst -> free;
+    while (i != 0)
     {
-        fprintf(fp, "node%d -> ", j);
-        j++;
+        fprintf(fp, "    node%d -> node%d[color=\"#0855F0\"]\n", i, NEXT(i));
         i = NEXT(i);
     }
-    fprintf(fp, "node%d;\n", j);
+
+    i = NEXT(lst -> free);
+    while (i != 0)
+    {
+        fprintf(fp, "    node%d -> node%d[color=\"#F00822\"]\n", i, PREV(i));
+        i = NEXT(i);
+    }
 
     fprintf(fp, "}");
 
+    printf("dot file completed\n");
     return 0;
 }
 
@@ -185,6 +214,8 @@ int list_insert_after(list_t* lst, size_t i, int elem)
 
     size_t curr = lst -> free;
     lst -> free = NEXT(curr);
+    lst -> prev[lst -> free] = -1;
+
     lst -> data[curr] = elem;
 
     lst -> prev[NEXT(i)] = curr;
@@ -205,6 +236,7 @@ int list_erase(list_t* lst, size_t i)
 
     lst -> prev[i] = -1;
     lst -> next[i] = lst -> free;
+    lst -> prev[lst -> free] = i;
     lst -> free = i;
 
     return 0;
