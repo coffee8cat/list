@@ -47,8 +47,13 @@ FILE* prepare_html()
 
 int list_dump(list_t* lst, FILE* html_stream)
 {
-    static size_t dump_counter = 0;
-    FILE* fp = fopen("data\\dump1.dot", "w");
+    static size_t dump_counter = 1;
+    char dot_file_name[BUFSIZ] = "";
+    char png_file_name[BUFSIZ] = "";
+    sprintf(dot_file_name, "data\\dump%d.dot", dump_counter);
+    sprintf(png_file_name, "data\\dump%d.png", dump_counter);
+
+    FILE* fp = fopen(dot_file_name, "w");
     if (fp == NULL)
     {
         fprintf(stderr, "ERROR: Unable to open file for dump\n");
@@ -56,37 +61,19 @@ int list_dump(list_t* lst, FILE* html_stream)
     }
 
     make_dot_file(lst, fp);
-    system("dot data\\" "dump1" ".dot" " -Tpng -o data\\" "dump1" ".png");
-    printf("dot data\\" "dump1" ".dot" " -Tpng -o data\\" "dump1" ".png" "\n");
 
-    int i = 0;
+    char command[BUFSIZ] = "";
+    sprintf(command, "dot %s -Tpng -o %s", dot_file_name, png_file_name);
+    WinExec((const char*)command, 1);
+    printf("%s\n", command);
 
     fprintf(html_stream, "MEMORY PRINT\n");
     fprintf(html_stream, "curr data next prev\n");
-    while (i != lst -> prev[0])
+    for (size_t i = 0; i < max_list_size; i++)
     {
         fprintf(html_stream, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
-        i = NEXT(i);
     }
-    fprintf(html_stream, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
-    fprintf(html_stream, "<img src=\"data\\dump1.png\">\n");
-
-    fprintf(stdout, "MEMORY PRINT\n");
-    fprintf(stdout, "curr data next prev\n");
-    for (size_t k = 0; k < max_list_size; k++)
-    {
-        printf("%4d %4d %4d %4d\n", k, lst -> data[k], lst -> next[k], lst -> prev[k]);
-    }
-
-    i = 0;
-    fprintf(stdout, "curr data next prev\n");
-    while (i != lst -> prev[0])
-    {
-        fprintf(stdout, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
-        i = NEXT(i);
-    }
-
-    printf("%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
+    fprintf(html_stream, "<img src=%s>\n", png_file_name);
 
     dump_counter++;
     return 0;
@@ -129,7 +116,7 @@ int make_dot_file(list_t* lst, FILE* fp)
         i = NEXT(i);
     }
 
-    fprintf(fp, "\n    ");
+    fprintf(fp, "\n");
     for (size_t k = 0; k < max_list_size - 1; k++)
     {
         fprintf(fp, "    node%d -> node%d[color=\"none\",penwidth=100000000]\n"
