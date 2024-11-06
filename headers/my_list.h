@@ -24,9 +24,11 @@ int list_dtor(list_t* lst);
 
 int list_verify(list_t* lst);
 
-FILE* prepare_html();
+FILE* prepare_to_dump();
+
 int list_dump(list_t* lst, FILE* stream);
 int make_dot_file(list_t* lst, FILE* fp);
+int dump_to_html(list_t* lst, char* png_file_name, FILE* html_stream);
 
 inline int* list_next(list_t* lst, size_t i);
 inline int* list_prev(list_t* lst, size_t i);

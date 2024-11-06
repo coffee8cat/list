@@ -11,14 +11,14 @@ list_t list_ctor()
     lst.free  = 1;
     lst.capacity = 0;
     lst.next[0] = 0;
-    lst.prev[0] = 1;
+    lst.prev[0] = lst.free;
 
     for (size_t i = 1; i < max_list_size - 1; i++)
     {
         lst.next[i] = (int)i + 1;
         lst.prev[i] = -1;
     }
-    lst.prev[max_list_size - 1] = max_list_size - 2;
+    lst.prev[max_list_size - 1] = -1;
     lst.next[max_list_size - 1] = 0;
 
     return lst;
@@ -62,8 +62,9 @@ int list_verify(list_t* lst)
     return 0;
 }
 
-FILE* prepare_html()
+FILE* prepare_to_dump()
 {
+    system("make clean_data\n");
     FILE* fp = fopen("list_dump.html", "w");
     if (fp == NULL)
     {
@@ -71,6 +72,7 @@ FILE* prepare_html()
         return NULL;
     }
     fprintf(fp, "<pre>\n");
+
     return fp;
 }
 
@@ -94,16 +96,9 @@ int list_dump(list_t* lst, FILE* html_stream)
 
     char command[BUFSIZ] = "";
     sprintf(command, "dot %s -Tpng -o %s\n", dot_file_name, png_file_name);
-    int x = system((const char*)command);
-    printf("x = %d\n%s\n", x, command);
+    system(command);
 
-    fprintf(html_stream, "MEMORY PRINT\n");
-    fprintf(html_stream, "curr data next prev\n");
-    for (size_t i = 0; i < max_list_size; i++)
-    {
-        fprintf(html_stream, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
-    }
-    fprintf(html_stream, "<img src=%s>\n", png_file_name);
+    dump_to_html(lst, png_file_name, html_stream);
 
     dump_counter++;
     return 0;
@@ -155,7 +150,8 @@ int make_dot_file(list_t* lst, FILE* fp)
     fprintf(fp, "    {rank = same; \"%d\"; node%d}\n\n", max_list_size - 1, max_list_size - 1);
 
     i = 0;
-    while (i != PREV(0)) //last case differ
+
+    while (i != PREV(0) && NEXT(0) != 0) //last case differ
     {
         fprintf(fp, "    node%d -> node%d[color=\"#0855F0\",constraint=false]\n", i, NEXT(i));
         fprintf(fp, "    node%d -> node%d[color=\"#F00822\",constraint=false]\n", NEXT(i), i);
@@ -174,6 +170,22 @@ int make_dot_file(list_t* lst, FILE* fp)
     fprintf(fp, "}");
 
     printf("dot file completed\n");
+    return 0;
+}
+
+int dump_to_html(list_t* lst, char* png_file_name, FILE* html_stream)
+{
+    assert(lst);
+    assert(png_file_name);
+
+    fprintf(html_stream, "MEMORY PRINT\n");
+    fprintf(html_stream, "curr data next prev\n");
+    for (size_t i = 0; i < max_list_size; i++)
+    {
+        fprintf(html_stream, "%4d %4d %4d %4d\n", i, lst -> data[i], lst -> next[i], lst -> prev[i]);
+    }
+    fprintf(html_stream, "<img src=%s>\n", png_file_name);
+
     return 0;
 }
 
@@ -222,9 +234,19 @@ int list_insert_after(list_t* lst, size_t i, int elem)
 {
     assert(lst);
 
+    if (lst -> prev[i] == -1)
+    {
+        fprintf(stderr, "ERROR: Cannot insert after free element\n");
+        return -1;
+    }
+    if (lst -> free == 0)
+    {
+        fprintf(stderr, "ERROR: List is full, unable to insert element\n");
+        return -2;
+    }
+
     size_t curr = lst -> free;
     lst -> free = NEXT(curr);
-    lst -> prev[lst -> free] = -1;
 
     lst -> data[curr] = elem;
 
@@ -249,6 +271,10 @@ int list_erase(list_t* lst, size_t i)
     lst -> prev[lst -> free] = i;
     lst -> free = i;
 
+    if (lst -> prev[0] == 0)
+    {
+        lst -> prev[0] = lst -> free;
+    }
     return 0;
 }
 

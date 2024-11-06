@@ -8,7 +8,7 @@ digraph
     node4[shape=record,style="rounded,filled",fillcolor="#39CCCC",label="index: 4 | data: 0 | next: 5 | prev: -1"];
     node5[shape=record,style="rounded,filled",fillcolor="#39CCCC",label="index: 5 | data: 0 | next: 6 | prev: -1"];
     node6[shape=record,style="rounded,filled",fillcolor="#39CCCC",label="index: 6 | data: 0 | next: 7 | prev: -1"];
-    node7[shape=record,style="rounded,filled",fillcolor="#39CCCC",label="index: 7 | data: 0 | next: 0 | prev: 6"];
+    node7[shape=record,style="rounded,filled",fillcolor="#39CCCC",label="index: 7 | data: 0 | next: 0 | prev: -1"];
     node0[shape=record,style="rounded,filled",fillcolor="#BE08F0",label="index: 0 | data: 0 | next: 2 | prev: 1"];
     node2[shape=record,style="rounded,filled",fillcolor="#2ECC40",label="index: 2 | data: 200 | next: 1 | prev: 0"];
     node1[shape=record,style="rounded,filled",fillcolor="#2ECC40",label="index: 1 | data: 100 | next: 0 | prev: 2"];
