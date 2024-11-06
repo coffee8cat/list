@@ -262,13 +262,18 @@ int list_insert_after(list_t* lst, size_t i, int elem)
 int list_erase(list_t* lst, size_t i)
 {
     assert(lst);
+    if (lst -> prev[i] == -1)
+    {
+        fprintf(stderr, "ERROR: Cannot erase free element\n");
+        return -1;
+    }
 
     lst -> prev[NEXT(i)] = lst -> prev[i];
     lst -> next[PREV(i)] = lst -> next[i];
 
     lst -> prev[i] = -1;
     lst -> next[i] = lst -> free;
-    lst -> prev[lst -> free] = i;
+    //lst -> prev[lst -> free] = i;
     lst -> free = i;
 
     if (lst -> prev[0] == 0)

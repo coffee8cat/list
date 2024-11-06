@@ -48,12 +48,12 @@ int main ()
     list_dump(&lst, html_stream);
 
     list_insert_after(&lst, 1, 300);
-    list_insert_after(&lst, 3, 600);
-    list_erase(&lst, 3);
+    list_insert_after(&lst, 2, 600);
+    //list_erase(&lst, 3);
     list_dump(&lst, html_stream);
 
-    list_insert_after(&lst, 4, 7);
-    list_insert_after(&lst, 4, 9);
+    //list_insert_after(&lst, 4, 7);
+    //list_insert_after(&lst, 4, 9);
     list_erase(&lst, 1);
 
     list_dump(&lst, html_stream);
